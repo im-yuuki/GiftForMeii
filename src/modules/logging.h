@@ -3,7 +3,7 @@
 #include <RTClib.h>
 
 namespace logging {
-    static RTC_DS3231* rtc = nullptr;
+    static RTC_DS3231* rtcPointer = nullptr;
 
     enum LogLevel {
         INFO,
@@ -11,21 +11,10 @@ namespace logging {
         ERROR
     };
 
-    void initLogging() {
-        Serial.begin(115200);
-        Serial.println("\n\n\n\n\n\n\n\n\n-----------------------------------");
-    }
-
-    void initLogging(RTC_DS3231 &rtcptr) {
-        rtc = &rtcptr;
-        Serial.begin(115200);
-        Serial.println("\n\n\n\n\n\n\n\n\n-----------------------------------");
-    }
-
-    static String getTime() {
+    String getTimeString() {
         String data = "";
-        if (rtc == nullptr) return data;
-        RTC_DS3231 rtcInstance = *rtc;
+        if (rtcPointer == nullptr) return data;
+        RTC_DS3231 rtcInstance = *rtcPointer;
         DateTime now = rtcInstance.now();
         data += String(now.day());
         data += '-';
@@ -44,7 +33,6 @@ namespace logging {
 
     void append(String loggerName, LogLevel level, String msg) {
         if (!Serial.availableForWrite()) return;
-        Serial.print(getTime());
         Serial.print(loggerName + ' ');
         switch (level) {
             case INFO:
@@ -75,6 +63,10 @@ namespace logging {
 
         Logger(String name) {
             this->name = name;
+        }
+
+        void connectRTC(RTC_DS3231 rtc) {
+            rtcPointer = &rtc;
         }
 
         Logger getSubLogger(String name) {
