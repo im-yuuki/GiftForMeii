@@ -1,19 +1,42 @@
 #include <Arduino.h>
-// #include <Wire.h>
 #include "modules/logging.h"
-// #include "modules/rtc.h"
+#include "modules/persistent.h"
+#include "modules/wifi.h"
 
-logging::Logger logger = logging::Logger();
-// RTC rtc = RTC();
+class System {
+	private:
+	logging::Logger logger = logging::Logger();
+	Persistent persistent = Persistent();
+	WiFiManager wifi = WiFiManager(&persistent);
+
+	public:
+	/**
+	 * Initalize the system instance
+	*/
+	void init() {
+		logger.info("Starting system");
+		persistent.init();
+		wifi.init();
+		logger.info("Finished initalize the system");
+	}
+	
+	/**
+	 * Loop for task
+	*/
+	void loop() {
+		wifi.loop();
+	}
+};
+
+
+System sys;
 
 void setup() {
 	Serial.begin(115200);
-	// Wire.begin();
 	Serial.println("\n\n\n\n\n\n\n\n\n-----------------------------------");
-	// rtc.init(false);
-	logger.info("Testing");
+	sys.init();
 }
 
 void loop() {
-	// put your main code here, to run repeatedly:
+	sys.loop();
 }

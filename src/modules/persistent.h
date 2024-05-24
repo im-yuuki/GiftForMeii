@@ -33,15 +33,21 @@ class Persistent {
     DataLayout data;
     logging::Logger logger = logging::Logger("persistent");
 
+    /**
+     * Read data from EEPROM to instance
+    */
     void readEEPROM() {
         byte *ptr = (byte*)(void*)&data;
-        for (int i = 0; i < sizeof(data); i++) {
+        for (unsigned int i = 0; i < sizeof(data); i++) {
             *ptr++ = EEPROM.read(i);
         }
     }
 
     public:
-    Persistent() {
+    /**
+     * Initalize the persistent instance
+    */
+    void init() {
         logger.info("Loading persistents");
         EEPROM.begin(1024);
         if (data.version != CONFIG_VERSION) {
@@ -50,10 +56,16 @@ class Persistent {
         }
     }
 
+    /**
+     * Get pointer to configuration on instance, for raw access
+    */
     DataLayout* getData() {
         return &data;
     }
 
+    /**
+     * Represent configuration in text format (Sensitive data won't be shown)
+    */
     String repr() {
         String str = "VERSION: ";
         str += data.version;
@@ -114,14 +126,20 @@ class Persistent {
         return str;
     }
 
+    /**
+     * Save configuration from instance to EEPROM
+    */
     void commit() {
         const byte *ptr = (const byte*)(const void*)&data;
-        for (int i = 0; i < sizeof(data); i++) {
+        for (unsigned int i = 0; i < sizeof(data); i++) {
             EEPROM.write(i, *ptr++);
         }
         EEPROM.commit();
     }
 
+    /**
+     * Mark an outdated flag to EEPROM, reboot the system with default configuration
+    */
     void reset() {
         logger.info("Resetting system");
         EEPROM.write(0, 0);
