@@ -1,37 +1,15 @@
 #pragma once
 #include <Arduino.h>
-// #include <RTClib.h>
 
 namespace logging {
-    // static RTC_DS3231* rtcPointer = nullptr;
-
     enum LogLevel {
         INFO,
         WARNING,
         ERROR
     };
 
-    // String getTimeString() {
-    //     String data = "";
-    //     if (rtcPointer == nullptr) return data;
-    //     RTC_DS3231 rtcInstance = *rtcPointer;
-    //     DateTime now = rtcInstance.now();
-    //     data += String(now.day());
-    //     data += '-';
-    //     data += String(now.month());
-    //     data += '-';
-    //     data += String(now.year());
-    //     data += ' ';
-    //     data += String(now.hour());
-    //     data += ':';
-    //     data += String(now.minute());
-    //     data += ':';
-    //     data += String(now.second());
-    //     data += ' ';
-    //     return data;
-    // }
 
-    void append(String loggerName, LogLevel level, String msg) {
+    void append(String &loggerName, LogLevel level, String &msg) {
         if (!Serial.availableForWrite()) return;
         Serial.print(loggerName + ' ');
         switch (level) {
@@ -61,9 +39,6 @@ namespace logging {
             this->name = "root";
         }
 
-        /**
-         * Get root logger instance
-        */
         Logger(String name) {
             this->name = name;
         }

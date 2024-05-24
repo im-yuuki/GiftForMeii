@@ -1,13 +1,18 @@
+#pragma once
 #include <Arduino.h>
-#include "modules/logging.h"
-#include "modules/persistent.h"
-#include "modules/wifi.h"
+#include "modules/logging.hpp"
+#include "modules/persistent.hpp"
+#include "modules/wifi.hpp"
+#include "server/http.hpp"
+
 
 class System {
 	private:
 	logging::Logger logger = logging::Logger();
+
 	Persistent persistent = Persistent();
-	WiFiManager wifi = WiFiManager(&persistent);
+	WiFiManager wifi = WiFiManager(persistent);
+	HttpServer http = HttpServer(persistent, wifi);
 
 	public:
 	/**
@@ -17,6 +22,7 @@ class System {
 		logger.info("Starting system");
 		persistent.init();
 		wifi.init();
+		http.init();
 		logger.info("Finished initalize the system");
 	}
 	
@@ -24,7 +30,7 @@ class System {
 	 * Loop for task
 	*/
 	void loop() {
-		wifi.loop();
+		http.loop();
 	}
 };
 

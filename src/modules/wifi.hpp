@@ -1,22 +1,40 @@
 #pragma once
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
-#include "modules/logging.h"
-#include "modules/constant.h"
-#include "modules/persistent.h"
+#include "modules/logging.hpp"
+#include "modules/constant.hpp"
+#include "modules/persistent.hpp"
 
-const char AP_NAME[] = "Meikayuu [CONFIGURATION]";
+const char AP_NAME[] = "Meikayuu <Setup>";
 
 class WiFiManager {
     private:
     logging::Logger logger = logging::Logger("wifi");
     Persistent* persistent;
-    bool connected = false;
 
+    void handleOnSTAConnected(const WiFiEventStationModeConnected &event) {
+        logger.info(String("Connected to AP: ") + event.ssid + ". Channel: " + event.channel + ". IP Address: "+ WiFi.localIP().toString()); 
+    }
+
+    void handleOnSTADisconnected(const WiFiEventStationModeDisconnected &event) {
+        logger.info("Connection to the AP has been lost");
+    }
+
+    void handleOnClientConnected(const WiFiEventSoftAPModeStationConnected &event) {
+        logger.info(String("New client: ") + event.aid + '(' + event.mac + ')');
+    }
+
+    void handleOnClientDisconnected(const WiFiEventSoftAPModeStationDisconnected &event) {
+        // logger.info();
+    }
 
     public:
-    WiFiManager(Persistent* persistent) {
-        this->persistent = persistent;
+    WiFiManager(Persistent &persistent) {
+        this->persistent = &persistent;
+        WiFi.onStationModeConnected([this](const WiFiEventStationModeConnected &event) { this->handleOnSTAConnected(event); });
+        WiFi.onStationModeDisconnected([this](const WiFiEventStationModeDisconnected &event) { this->handleOnSTADisconnected(event); });
+        WiFi.onSoftAPModeStationConnected([this](const WiFiEventSoftAPModeStationConnected &event) { this->handleOnClientConnected(event); });
+        WiFi.onSoftAPModeStationDisconnected([this](const WiFiEventSoftAPModeStationDisconnected &event) { this->handleOnClientDisconnected(event); });
     }
     
     /**
@@ -28,6 +46,7 @@ class WiFiManager {
         WiFi.enableAP(true);
         WiFi.enableInsecureWEP(true);
         logger.info("WiFiManager successfully initalized");
+        connect();
     }
 
     void startScanTasks() {
@@ -79,17 +98,5 @@ class WiFiManager {
         //
         persistent->commit();
         connect();
-    }
-
-    // Loop task
-    void loop() {
-        if (!connected && WiFi.isConnected()) {
-            logger.info(String("AP connected. IP address: ") + WiFi.localIP().toString()); 
-            connected = true;
-        }
-        else if (connected && !WiFi.isConnected()) {
-            logger.info("Connection to the AP has been lost");
-            connected = false;
-        }
     }
 };
